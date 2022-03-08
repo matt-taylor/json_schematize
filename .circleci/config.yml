@@ -1,0 +1,104 @@
+version: 2.1 # Use 2.1 to enable using orbs and other features.
+
+# Declare the orbs that we'll use in our config.
+# read more about orbs: https://circleci.com/docs/2.0/using-orbs/
+orbs:
+  ruby: circleci/ruby@1.0
+
+executors:
+  gem:
+    parameters:
+      ruby-version:
+        default: "3"
+        type: string
+    docker:
+      - image: circleci/ruby:<< parameters.ruby-version >>
+
+commands:
+  bundler-preamble:
+    description: "Install ruby and the Gemfile dependencies"
+    parameters:
+      ruby-version:
+        type: string
+        default: "3"
+        description: "Ruby Gem version"
+      key-name:
+        type: string
+        default: ""
+        description: Custom name to add to the cache key
+      cache-breaker:
+        type: string
+        default: "0"
+        description: "Cache breaker to force new cache instantiation"
+      keep-lock-file:
+        type: boolean
+        default: false
+        description: "Retain lock file when bit is set to true. Otherwise generate a new one specific for this build"
+    steps:
+      - checkout
+      - attach_workspace:
+          at: workspace
+      - unless:
+            condition:
+              equal: [ true, << parameters.keep-lock-file >> ]
+            steps:
+              - run:
+                  name: Remove Gemfile.lock
+                  command: rm Gemfile.lock
+      - restore_cache:
+          key: bundle-<< parameters.ruby-version >>-<< parameters.key-name >>-{{ checksum "Gemfile" }}-<< parameters.cache-breaker >>
+      - ruby/install-deps:
+          path: vendor/bundle
+          with-cache: false
+      - run:
+          name: "Update dependencies"
+          command: bundle update
+      - save_cache:
+          key: bundle-<< parameters.ruby-version >>-<< parameters.key-name >>-{{ checksum "Gemfile" }}-<< parameters.cache-breaker >>
+          paths:
+            - vendor/bundle
+
+jobs:
+  test:
+    parameters:
+      ruby-version:
+        default: "3"
+        type: string
+        description: "Ruby version to test against"
+    executor:
+      name: gem
+      ruby-version: << parameters.ruby-version >>
+    steps:
+      - bundler-preamble:
+          ruby-version: "<< parameters.ruby-version >>"
+      - run:
+          name: Setup Climate Control test-reporter
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+      - run:
+          name: Run and Report tests
+          command: |
+            ./cc-test-reporter before-build
+            SIMPLE_COV_RUN=true bundle exec rspec --format RspecJunitFormatter --out test-results/rspec/rspec.xml --format progress --color
+      - when:
+          condition:
+            equal:
+              [
+                required-test-ruby2.7.5,
+                required-test-ruby<< parameters.ruby-version >>,
+              ]
+          steps:
+            - run:
+                name: Report CodeClimate Coverage
+                command: cc-test-reporter after-build --coverage-input-type simplecov
+workflows:
+  version: 2
+  yeet-le-jobs:
+    jobs:
+      - test:
+        matrix:
+          parameters:
+            ruby-version: ["2.7.5" , "3.0.3"]
+          alias: required-matrix-tests
+        name: test-ruby<< matrix.ruby-version >>-rails<< matrix.rails-version >>
