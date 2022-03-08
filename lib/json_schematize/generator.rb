@@ -9,7 +9,7 @@ class JsonSchematize::Generator
   EMPTY_VALIDATOR = ->(_transformed_value,_raw_value) { true }
   PROTECTED_METHODS = [:assign_values!, :convenience_methods, :validate_required!, :validate_optional!, :validate_value]
 
-  def self.add_field(name:, type: nil, types: [], dig_type: nil, dig: nil, validator: EMPTY_VALIDATOR, required: true, converter: nil)
+  def self.add_field(name:, type: nil, types: [], dig_type: nil, dig: nil, validator: EMPTY_VALIDATOR, required: true, converter: nil, array_of_types: false)
     field_params = {
       converter: converter,
       dig: dig,
