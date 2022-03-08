@@ -1,4 +1,4 @@
-version: 2.1 # Use 2.1 to enable using orbs and other features.
+version: 2.1
 
 # Declare the orbs that we'll use in our config.
 # read more about orbs: https://circleci.com/docs/2.0/using-orbs/
@@ -12,7 +12,7 @@ executors:
         default: "3"
         type: string
     docker:
-      - image: circleci/ruby:<< parameters.ruby-version >>
+      - image: cimg/ruby:<< parameters.ruby-version >>
 
 commands:
   bundler-preamble:
