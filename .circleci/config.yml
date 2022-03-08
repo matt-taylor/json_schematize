@@ -116,7 +116,7 @@ jobs:
   test:
     parameters:
       ruby-version:
-        default: "3"
+        default: "3.0.0"
         type: string
         description: "Ruby version to test against"
     executor:
@@ -153,7 +153,7 @@ workflows:
       - test:
           matrix:
             parameters:
-              ruby-version: ["2.7.5" , "3.0.3"]
+              ruby-version: ["2.7.5" , "3.0.0", "3.0.3"]
             alias: required-matrix-tests
           name: required-test-ruby<< matrix.ruby-version >>
       - publish-github:
