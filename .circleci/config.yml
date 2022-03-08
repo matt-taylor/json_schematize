@@ -97,8 +97,8 @@ workflows:
   yeet-le-jobs:
     jobs:
       - test:
-        matrix:
-          parameters:
-            ruby-version: ["2.7.5" , "3.0.3"]
-          alias: required-matrix-tests
-        name: test-ruby<< matrix.ruby-version >>-rails<< matrix.rails-version >>
+          matrix:
+            parameters:
+              ruby-version: ["2.7.5" , "3.0.3"]
+            alias: required-matrix-tests
+          name: test-ruby<< matrix.ruby-version >>-rails<< matrix.rails-version >>
