@@ -1,0 +1,17 @@
+/.bundle/
+/.yardoc
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/spec/examples.txt*
+/tmp/
+Gemfile.lock
+.DS_Store
+
+# rspec failure tracking
+.rspec_status
+
+# generated gems
+*.gem

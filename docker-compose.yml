@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  json_schematize:
+    command: tail -f /dev/null
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - .:/gem
+      - ..:/local
+      - bundle-cache:/usr/local/bundle:delegated
+
+volumes:
+  bundle-cache:
