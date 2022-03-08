@@ -64,6 +64,24 @@ commands:
             - vendor/bundle
 
 jobs:
+  publish-ruby-gems:
+    executor: gem
+    steps:
+      - bundler-preamble:
+          keep-lock-file: true
+      - run:
+          name: Publish to Ruby Gems
+          command: |
+            if [ -z "$GEM_HOST_API_KEY" ]; then
+              echo 'Environment variable GEM_HOST_API_KEY is not present'
+              exit 1
+            fi
+            gem_output=$(gem build json_schematize.gemspec)
+            VERSION=$(printf "$gem_output" | awk '/Version: / {print $2}')
+            FILE=$(printf "$gem_output" | awk '/File: / {print $2}')
+
+            gem push ${FILE}
+
   publish-github:
     executor: gem
     steps:
@@ -80,7 +98,7 @@ jobs:
             git config user.name $GITHUB_USER
             git config user.email $GITHUB_EMAIL
       - run:
-          name: Publish Git
+          name: Publish Git Release
           command: |
             curl -sSL https://github.com/tcnksm/ghr/releases/download/v0.13.0/ghr_v0.13.0_linux_amd64.tar.gz | tar xz -f - -C . ghr_v0.13.0_linux_amd64/ghr
             mv ghr_v0.13.0_linux_amd64/ghr .
@@ -157,13 +175,13 @@ workflows:
       - publish-github:
           requires:
             - required-matrix-tests
-          # filters:
-          #   branches:
-          #     only:
-          #       - main
-      # - publish-rubygems:
-      #     requires:
-      #       - required-matrix-tests
+          filters:
+            branches:
+              only:
+                - main
+      - publish-rubygems:
+          requires:
+            - required-matrix-tests
       #     filters:
       #       branches:
       #         only:
