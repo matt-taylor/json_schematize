@@ -5,6 +5,10 @@ version: 2.1
 orbs:
   ruby: circleci/ruby@1.0
 
+common_envs: &common_envs
+  environment:
+    APP_BUNDLER_VERSION: "2.3.8"
+
 executors:
   gem:
     parameters:
@@ -14,10 +18,6 @@ executors:
     docker:
       - image: cimg/ruby:<< parameters.ruby-version >>
     <<: *common_envs
-
-common_envs: &common_envs
-  environment:
-    APP_BUNDLER_VERSION: "2.3.8"
 
 commands:
   bundler-preamble:
