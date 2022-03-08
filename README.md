@@ -1,11 +1,8 @@
 # JsonSchematize
 
-Welcome to your new gem! In this directory, you'll find the files you need to be
-able to package up your Ruby library into a gem. Put your Ruby code in the file
-`lib/json_schematize`. To experiment with that code, run
-`bin/console` for an interactive prompt.
+`JsonSchematize` is emant to be a simple schema control version used to aprse data returned from any API.
 
-TODO: Delete this and the text above, and describe your gem
+It can handle nested Schematized versions and build the tree all the way down
 
 ## Installation
 
@@ -25,25 +22,78 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Given hash value of the following:
+```json
+{
+  "status":"complete",
+  "id":"127392",
+  "body":
+    [
+      {
+        "status":"failed",
+        "id":"12345",
+        "field_i_dont_care_about": false
+      },
+      {
+        "status":"failed",
+        "id":"6347",
+        "field_i_dont_care_about": true
+      }
+    ]
+}
+```
+
+```ruby
+# lib/schema/internal_body
+require 'json_schematize/generator'
+
+class InternalBody < JsonSchematize::Generator
+  ALLOWED_STATUSES = [:failed, :completed, :success]
+
+  add_field name: :id, type: Integer
+  add_field name: :status, type: Symbol, validator: ->(transformed_value, raw_value) { ALLOWED_STATUSES.include?(transformed_value) }
+end
+
+###
+# lib/schema/my_first_schema
+require 'json_schematize/generator'
+require 'internal_body' #dependeing on load order
+
+class MyFirstSchema < JsonSchematize::Generator
+  add_field name: :internals, type: InternalBody, array_of_types: true, dig: ["body"]
+  add_field name: :id, type: Integer
+  add_field name: :status, type: Symbol
+end
+
+schema = MyFirstSchema.new(**json_hash)
+schema.internals.count #=> 2
+schema.internals.first.status #=> :failed
+schema.id #=> 127392
+schema.id = 999999  #assignments are still subject to validation logic for each field
+schema.id #=> 999999
+```
+
+### Field options:
+```bash
+name -- Name of the field. Field name can be accessed from the instance
+type -- Class of the expected field type
+types -- To be used when you want the field to have multiple types. Useful for similar classes like DateTime, Date, Time (converter must be supplied when multiple types are given)
+dig_type -- Methodolgy of how to dig into the given param for the field. All values of the `dig` array will be converted accordingly. Default is `none` and will attempt to use what is given. [:symbol, :string, :none].
+dig -- Array telling JsonSchematize how to dig into the provided hash
+validator -- Proc value to validate the data found in the params. Proc given (transformed_value, original_value) when calling in
+required -- Default is true. When not set, each instance class can optionally decide if they want to raise when an this is set to false.
+converter -- Proc return is set to the field value. No furter validation is done. Given (value) as a parameter
+array_of_types -- Detailed example above. Set this value to true when the dig param is to an array and you want all values in array to be parsed the given type
+```
+
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run
-`rake rspec` to run the tests. You can also run `bin/console` for an interactive
-prompt that will allow you to experiment. Run `bundle exec json_schematize` to use
-the gem in this directory, ignoring other installed copies of this gem.
-
-To install this gem onto your local machine, run `bundle exec rake install`.
-
-To release a new version:
-
-1. Update the version number in [lib/json_schematize/version.rb]
-2. Update [CHANGELOG.md]
-3. Merge to the main branch. This will trigger an automatic build in CircleCI
-   and push the new gem to the repo.
+This gem can be developed against local machine or while using docker. Simpleified Docker commands can be found in the `Makefile` or execute `make help`
 
 ## Contributing
+
+This gem welcomes contribution.
 
 Bug reports and pull requests are welcome on GitHub at
 https://github.com/matt-taylor/json_schematize.
