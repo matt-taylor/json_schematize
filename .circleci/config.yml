@@ -80,15 +80,13 @@ jobs:
             git config user.name $GITHUB_USER
             git config user.email $GITHUB_EMAIL
       - run:
-          name: 'Download GHR'
+          name: Publish Git
           command: |
             curl -sSL https://github.com/tcnksm/ghr/releases/download/v0.13.0/ghr_v0.13.0_linux_amd64.tar.gz | tar xz -f - -C . ghr_v0.13.0_linux_amd64/ghr
             mv ghr_v0.13.0_linux_amd64/ghr .
             rm -rf ghr_v0.13.0_linux_amd64
             chmod 0755 ghr
-      - run:
-          name: Publish Git
-          command: |
+
             if [ -z "$GITHUB_TOKEN" ]; then
               echo 'Environment variable GITHUB_TOKEN is not present'
               exit 1
@@ -111,7 +109,7 @@ jobs:
             git tag -a $VERSION -m "$VERSION"
 
             SHA=$(git rev-parse HEAD)
-            ghr -soft -t ${GITHUB_TOKEN} -u ${GITHUB_USER} -r json_schematize -c ${SHA} ${VERSION} ${FILE}
+            ./ghr -soft -t ${GITHUB_TOKEN} -u ${GITHUB_USER} -r json_schematize -c ${SHA} ${VERSION} ${FILE}
 
   test:
     parameters:
