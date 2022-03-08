@@ -64,6 +64,55 @@ commands:
             - vendor/bundle
 
 jobs:
+  publish-github:
+    executor: gem
+    steps:
+      - bundler-preamble:
+          keep-lock-file: true
+      - run:
+          name: 'Get Go'
+          command: |
+            sudo apt-get update -qq
+            sudo apt-get -y --no-install-recommends install golang-go
+      - run:
+          name: 'Set Git stats'
+          command: |
+            git config user.name $GITHUB_USER
+            git config user.email $GITHUB_EMAIL
+      - run:
+          name: 'Download GHR'
+          command: |
+            curl -sSL https://github.com/tcnksm/ghr/releases/download/v0.13.0/ghr_v0.13.0_linux_amd64.tar.gz | tar xz -f - -C . ghr_v0.13.0_linux_amd64/ghr
+            mv ghr_v0.13.0_linux_amd64/ghr .
+            rm -rf ghr_v0.13.0_linux_amd64
+            chmod 0755 ghr
+      - run:
+          name: Publish Git
+          command: |
+            if [ -z "$GITHUB_TOKEN" ]; then
+              echo 'Environment variable GITHUB_TOKEN is not present'
+              exit 1
+            fi
+
+            if [ -z "$GITHUB_USER" ]; then
+              echo 'Environment variable GITHUB_USER is not present'
+              exit 1
+            fi
+
+            if [ $(git tag -l "$VERSION") ]; then
+              echo "Pre existing version $VERSION, not tagging."
+              exit 0
+            fi
+
+            gem_output=$(gem build json_schematize.gemspec)
+            VERSION=$(printf "$gem_output" | awk '/Version: / {print $2}')
+            FILE=$GEM_PATH$(printf "$gem_output" | awk '/File: / {print $2}')
+
+            git tag -a $VERSION -m "$VERSION"
+
+            SHA=$(git rev-parse HEAD)
+            ghr -soft -t ${GITHUB_TOKEN} -u ${GITHUB_USER} -r json_schematize -c ${SHA} ${VERSION} ${FILE}
+
   test:
     parameters:
       ruby-version:
@@ -107,3 +156,18 @@ workflows:
               ruby-version: ["2.7.5" , "3.0.3"]
             alias: required-matrix-tests
           name: required-test-ruby<< matrix.ruby-version >>
+      - publish-github:
+          requires:
+            - required-matrix-tests
+          # filters:
+          #   branches:
+          #     only:
+          #       - main
+      # - publish-rubygems:
+      #     requires:
+      #       - required-matrix-tests
+      #     filters:
+      #       branches:
+      #         only:
+      #           - main
+
