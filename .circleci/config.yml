@@ -13,6 +13,11 @@ executors:
         type: string
     docker:
       - image: cimg/ruby:<< parameters.ruby-version >>
+    <<: *common_envs
+
+common_envs: &common_envs
+  environment:
+    APP_BUNDLER_VERSION: "2.3.8"
 
 commands:
   bundler-preamble:
