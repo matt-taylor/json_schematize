@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["Matt Taylor"]
   spec.email   = ["mattius.taylor@gmail.com"]
 
-  spec.summary     = "Describe the gem here"
-  spec.description = "Describe the gem here"
+  spec.summary     = "This gem gives you the ability to turn API results into a standardized schema's that can be easily grocked"
+  spec.description = "Take standardized API results and turn them into a Schema"
   spec.homepage    = "https://github.com/matt-taylor/json_schematize"
   spec.license     = "MIT"
 
