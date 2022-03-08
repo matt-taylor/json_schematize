@@ -13,7 +13,7 @@ executors:
   gem:
     parameters:
       ruby-version:
-        default: "3"
+        default: "3.0.0"
         type: string
     docker:
       - image: cimg/ruby:<< parameters.ruby-version >>
