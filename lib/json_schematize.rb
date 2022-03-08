@@ -9,4 +9,5 @@ module JsonSchematize
   class InvalidField < Error; end
   class InvalidFieldByValidator < InvalidField; end
   class InvalidFieldByType < InvalidField; end
+  class InvalidFieldByArrayOfTypes < InvalidField; end
 end

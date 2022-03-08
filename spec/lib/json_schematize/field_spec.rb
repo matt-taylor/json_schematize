@@ -12,6 +12,7 @@ RSpec.describe JsonSchematize::Field do
       required: required,
       validator: validator_proc,
       converter: converter,
+      array_of_types: array_of_types,
     }
   end
   let(:name) { Faker::Name.name.delete(" ").to_sym }
@@ -21,6 +22,7 @@ RSpec.describe JsonSchematize::Field do
   let(:dig_type) { nil }
   let(:required) { true }
   let(:converter) { nil }
+  let(:array_of_types) { false }
   let(:validator_proc) { ->(_val, _raw_val) { true } }
 
   describe "#setup!" do
@@ -239,11 +241,25 @@ RSpec.describe JsonSchematize::Field do
       context 'when value is acceptable' do
         let(:value) { 5 }
         it { is_expected.to eq(true) }
+
+        context "with array_of_types true" do
+          let(:array_of_types) { true }
+          let(:value) { [1,2,3,4,5] }
+
+          it { is_expected.to eq(true) }
+        end
       end
 
       context 'when value is not acceptable' do
         let(:value) { "5" }
         it { expect { subject }.to raise_error(JsonSchematize::InvalidFieldByType, /:#{name} is an invalid option based on acceptable/) }
+
+        context "with array_of_types true" do
+          let(:array_of_types) { true }
+          let(:value) { [1,2,3,4,"5"] }
+
+          it { expect { subject }.to raise_error(JsonSchematize::InvalidFieldByType, /array_of_types/) }
+        end
       end
     end
 
@@ -273,12 +289,27 @@ RSpec.describe JsonSchematize::Field do
 
       context 'when value is acceptable' do
         it { is_expected.to eq(true) }
+
+        context "with array_of_types true" do
+          let(:array_of_types) { true }
+          let(:transformed_value) { [1,2,3,4,5] }
+
+          it { is_expected.to eq(true) }
+        end
       end
 
       context 'when value is not acceptable' do
         let(:validator_proc) { ->(_val, _raw_val) { false } }
 
         it { expect { subject }.to raise_error(JsonSchematize::InvalidFieldByValidator, /:#{name} is an invalid option based on validator :proc option/) }
+
+        context "with array_of_types true" do
+          let(:validator_proc) { ->(val, _raw_val) { val.is_a?(Integer) } }
+          let(:array_of_types) { true }
+          let(:transformed_value) { [1,2,3,4,"5"] }
+
+          it { expect { subject }.to raise_error(JsonSchematize::InvalidFieldByValidator, /array_of_types/) }
+        end
       end
     end
 
@@ -322,5 +353,19 @@ RSpec.describe JsonSchematize::Field do
 
     before { instance.setup! }
     it { is_expected.to eq(value.to_i) }
+
+    context 'when array_of_types is true' do
+      let(:array_of_types) { true }
+
+      context 'when value is an array' do
+        let(:value) { ["1","2","3","4","5"] }
+
+        it { is_expected.to eq([1,2,3,4,5])}
+      end
+
+      context 'when value is not array' do
+        it { expect { subject }.to raise_error(JsonSchematize::InvalidFieldByArrayOfTypes, /expected to be an array based on :array_of_types flag/) }
+      end
+    end
   end
 end
