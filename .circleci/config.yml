@@ -64,7 +64,7 @@ commands:
             - vendor/bundle
 
 jobs:
-  publish-ruby-gems:
+  publish-rubygems:
     executor: gem
     steps:
       - bundler-preamble:
