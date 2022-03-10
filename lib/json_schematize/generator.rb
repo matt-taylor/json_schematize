@@ -67,9 +67,9 @@ class JsonSchematize::Generator
 
   attr_reader :__raw_params, :raise_on_error
 
-
-  def initialize(raise_on_error: true, **params)
-    @__params = params
+  # stringified_params allows for params with stringed keys
+  def initialize(stringified_params = {}, raise_on_error: true, **params)
+    @__params = stringified_params.empty? ? params : stringified_params
     @raise_on_error = raise_on_error
 
     validate_required!

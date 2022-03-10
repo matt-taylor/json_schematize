@@ -85,7 +85,14 @@ required -- Default is true. When not set, each instance class can optionally de
 converter -- Proc return is set to the field value. No furter validation is done. Given (value) as a parameter
 array_of_types -- Detailed example above. Set this value to true when the dig param is to an array and you want all values in array to be parsed the given type
 ```
+### Custom Classes
 
+```ruby
+class CustomClasses < JsonSchematize::Generator
+  # JsonSchematize::Boolean can be used as a type when expecting a conversion of possible true or false values converted into a TrueClass or FalseClass
+  add_field name: :internals, type: JsonSchematize::Boolean
+end
+```
 
 ## Development
 
