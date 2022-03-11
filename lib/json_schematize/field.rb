@@ -36,9 +36,9 @@ class JsonSchematize::Field
 
   def acceptable_value?(transformed_value:, raise_on_error:)
     if array_of_types
-      boolean = transformed_value.all? { |val| @acceptable_types.include?(val.class) }
+      boolean = transformed_value.all? { |val| validate_acceptable_types(val: val) }
     else
-      boolean = @acceptable_types.include?(transformed_value.class)
+      boolean = validate_acceptable_types(val: transformed_value)
     end
 
     if raise_on_error && (boolean==false)
@@ -76,6 +76,18 @@ class JsonSchematize::Field
   end
 
   private
+
+  def validate_acceptable_types(val:)
+    (all_allowed_types + @acceptable_types).include?(val.class)
+  end
+
+  def all_allowed_types
+    @all_allowed_types ||= begin
+      @acceptable_types.map do |t|
+        t.acceptable_types if t.ancestors.include?(JsonSchematize::Base)
+      end.compact.flatten
+    end
+  end
 
   def iterate_array_of_types(value:)
     return raw_converter_call(value: value) unless array_of_types
