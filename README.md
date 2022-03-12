@@ -85,6 +85,21 @@ required -- Default is true. When not set, each instance class can optionally de
 converter -- Proc return is set to the field value. No furter validation is done. Given (value) as a parameter
 array_of_types -- Detailed example above. Set this value to true when the dig param is to an array and you want all values in array to be parsed the given type
 ```
+
+### Schema defaults
+
+Defaults can be added for all fields for any of the available options. This can be useful for returned API calls when the body is parsed as a Hash with String keys.
+
+```ruby
+class SchemaWithDefaults < JsonSchematize::Generator
+  schema_default option: :dig_type, value: :string
+
+  add_field name: :internals, type: InternalBody, array_of_types: true
+  add_field name: :id, type: Integer
+  add_field name: :status, type: Symbol
+end
+```
+
 ### Custom Classes
 
 ```ruby

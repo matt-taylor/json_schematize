@@ -5,7 +5,7 @@ require 'json_schematize/field_validators'
 
 class JsonSchematize::Field
 
-  attr_reader :name, :types, :dig, :symbol, :validator, :acceptable_types, :required, :converter, :array_of_types
+  attr_reader :name, :types, :dig, :dig_type, :symbol, :validator, :acceptable_types, :required, :converter, :array_of_types
 
   EXPECTED_DIG_TYPE = [DIG_SYMBOL = :symbol, DEFAULT_DIG = DIG_NONE =:none, DIG_STRING = :string]
 
@@ -23,7 +23,7 @@ class JsonSchematize::Field
   end
 
   def setup!
-    # validations must be done beofre transformations
+    # validations must be done before transformations
     valiadtions!
     transformations!
   end
