@@ -74,7 +74,7 @@ schema.id #=> 999999
 ```
 
 ### Field options:
-```bash
+```
 name -- Name of the field. Field name can be accessed from the instance
 type -- Class of the expected field type
 types -- To be used when you want the field to have multiple types. Useful for similar classes like DateTime, Date, Time (converter must be supplied when multiple types are given)
@@ -84,6 +84,7 @@ validator -- Proc value to validate the data found in the params. Proc given (tr
 required -- Default is true. When not set, each instance class can optionally decide if they want to raise when an this is set to false.
 converter -- Proc return is set to the field value. No furter validation is done. Given (value) as a parameter
 array_of_types -- Detailed example above. Set this value to true when the dig param is to an array and you want all values in array to be parsed the given type
+empty_value -- When required is false, this value is used to fill the field. By default it is JsonSchematize::EmptyValue, but can be changed to anything
 ```
 
 ### Schema defaults
@@ -96,7 +97,7 @@ class SchemaWithDefaults < JsonSchematize::Generator
 
   add_field name: :internals, type: InternalBody, array_of_types: true
   add_field name: :id, type: Integer
-  add_field name: :status, type: Symbol
+  add_field name: :status, type: Symbol, required: false, empty_value: "empty"
 end
 ```
 

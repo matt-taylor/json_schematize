@@ -2,7 +2,7 @@
 
 module JsonSchematize::FieldValidators
 
-  def valiadtions!
+  def validations!
     validate_type!(t: @type)
     validate_types!
     validate_name!
