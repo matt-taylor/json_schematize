@@ -5,11 +5,12 @@ require 'json_schematize/field_validators'
 
 class JsonSchematize::Field
 
-  attr_reader :name, :types, :dig, :dig_type, :symbol, :validator, :acceptable_types, :required, :converter, :array_of_types
+  attr_reader :name, :types, :dig, :dig_type, :symbol, :validator, :empty_value
+  attr_reader :acceptable_types, :required, :converter, :array_of_types
 
   EXPECTED_DIG_TYPE = [DIG_SYMBOL = :symbol, DEFAULT_DIG = DIG_NONE =:none, DIG_STRING = :string]
 
-  def initialize(name:, types:, dig:, dig_type:, validator:, type:, required:, converter:, array_of_types: false)
+  def initialize(name:, types:, dig:, dig_type:, validator:, type:, required:, converter:, empty_value:, array_of_types: false)
     @name = name
     @types = types
     @type = type
@@ -19,13 +20,15 @@ class JsonSchematize::Field
     @validator = validator
     @acceptable_types = []
     @converter = converter
+    @empty_value = empty_value
     @array_of_types = array_of_types
   end
 
   def setup!
     # validations must be done before transformations
-    valiadtions!
+    validations!
     transformations!
+    @acceptable_types << ((empty_value.class == Class) ? empty_value : empty_value.class)
   end
 
   def value_transform(value:)
@@ -102,7 +105,13 @@ class JsonSchematize::Field
   end
 
   def raw_converter_call(value:)
+    return convert_empty_value if value.nil? && (required == false)
+
     converter.call(value)
+  end
+
+  def convert_empty_value
+    empty_value.class == Class ? empty_value.new : empty_value
   end
 
   include JsonSchematize::FieldTransformations

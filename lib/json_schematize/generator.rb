@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "json_schematize/empty_value"
 require "json_schematize/field"
 require "json_schematize/introspect"
 
@@ -9,7 +10,7 @@ class JsonSchematize::Generator
 
   include JsonSchematize::Introspect
 
-  def self.add_field(name:, type: nil, types: nil, dig_type: nil, dig: nil, validator: nil, required: nil, converter: nil, array_of_types: nil)
+  def self.add_field(name:, type: nil, types: nil, dig_type: nil, dig: nil, validator: nil, required: nil, converter: nil, array_of_types: nil, empty_value: nil)
     field_params = {
       converter: converter || schema_defaults[:converter],
       dig: dig || schema_defaults[:dig],
@@ -18,6 +19,7 @@ class JsonSchematize::Generator
       required: (required.nil? ? schema_defaults.fetch(:required, true) : required),
       type: type || schema_defaults[:type],
       types: types || schema_defaults.fetch(:types, []),
+      empty_value: empty_value || schema_defaults.fetch(:empty_value, JsonSchematize::EmptyValue),
       validator: validator || schema_defaults.fetch(:validator, EMPTY_VALIDATOR),
       array_of_types: (array_of_types.nil? ? schema_defaults.fetch(:array_of_types, false) : array_of_types),
     }
@@ -95,7 +97,6 @@ class JsonSchematize::Generator
       @values_assigned = true
     end
   end
-
 
   private
 

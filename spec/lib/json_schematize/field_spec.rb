@@ -13,6 +13,7 @@ RSpec.describe JsonSchematize::Field do
       validator: validator_proc,
       converter: converter,
       array_of_types: array_of_types,
+      empty_value: empty_value,
     }
   end
   let(:name) { Faker::Name.name.delete(" ").to_sym }
@@ -23,6 +24,7 @@ RSpec.describe JsonSchematize::Field do
   let(:required) { true }
   let(:converter) { nil }
   let(:array_of_types) { false }
+  let(:empty_value) { JsonSchematize::EmptyValue }
   let(:validator_proc) { ->(_val, _raw_val) { true } }
 
   describe "#setup!" do
@@ -134,7 +136,7 @@ RSpec.describe JsonSchematize::Field do
       it do
         subject
 
-        expect(instance.acceptable_types.map(&:name).sort).to eq(converter.keys.map(&:name).sort)
+        expect(instance.acceptable_types.map(&:name).sort).to eq((converter.keys + [empty_value]).map(&:name).sort)
       end
     end
 
@@ -353,6 +355,18 @@ RSpec.describe JsonSchematize::Field do
 
     before { instance.setup! }
     it { is_expected.to eq(value.to_i) }
+
+    context 'when value is missing' do
+      let(:value) { nil }
+      let(:empty_value) { "empty_value returned" }
+
+      it { is_expected.to eq(value.to_i) }
+
+      context 'when field is not required' do
+        let(:required) { false }
+        it { is_expected.to eq(empty_value) }
+      end
+    end
 
     context 'when array_of_types is true' do
       let(:array_of_types) { true }
