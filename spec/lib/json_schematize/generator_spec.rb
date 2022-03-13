@@ -220,7 +220,7 @@ RSpec.describe JsonSchematize::Generator do
         end
         IntrospectKlassInspect
       end
-      let(:expected) { "#<#{klass} - required fields: #{params.keys}; optional fields: []>" }
+      let(:expected) { "#<#{klass} - required fields: #{params.keys}; #{instance.to_h.map { |k, v| "#{k}:#{v}" }.join(", ")}>" }
       it { is_expected.to eq(expected) }
     end
   end
