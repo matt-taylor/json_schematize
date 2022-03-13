@@ -22,6 +22,7 @@ module JsonSchematize::Introspect
   end
 
   def inspect
-    "#<#{self.class} - required fields: #{self.class.required_fields.map(&:name)}; optional fields: #{self.class.optional_fields.map(&:name)}>"
+    stringify = to_h.map { |k, v| "#{k}:#{v}" }.join(", ")
+    "#<#{self.class} - required fields: #{self.class.required_fields.map(&:name)}; #{stringify}>"
   end
 end
