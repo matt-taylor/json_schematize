@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
-class JsonSchematize::EmptyValue
+require "json_schematize/generator"
+
+class JsonSchematize::EmptyValue < ::JsonSchematize::Generator
   def initialize(*)
+    super
   end
 end

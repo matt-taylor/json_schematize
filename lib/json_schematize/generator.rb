@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "json_schematize/empty_value"
 require "json_schematize/field"
 require "json_schematize/introspect"
 
