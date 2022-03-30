@@ -17,6 +17,8 @@ executors:
         type: string
     docker:
       - image: cimg/ruby:<< parameters.ruby-version >>
+      - image: circleci/redis:6.0
+
     <<: *common_envs
 
 commands:
