@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "json_schematize/cache"
 require "json_schematize/field"
 require "json_schematize/introspect"
 
