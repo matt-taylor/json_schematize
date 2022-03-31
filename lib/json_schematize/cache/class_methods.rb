@@ -53,10 +53,14 @@ module JsonSchematize
         redis_client.zrangebyscore(cache_namespace, Time.now.to_i, "+inf")
       end
 
-      def cached_items
+      def cached_items(key_includes: nil)
         clear_unscored_items! if rand >0.8
 
         cached_keys.map do |key|
+          if key_includes
+            next unless key.include?(key_includes)
+          end
+
           serialized_string = redis_client.get(key)
           Marshal.load(serialized_string)
         end
