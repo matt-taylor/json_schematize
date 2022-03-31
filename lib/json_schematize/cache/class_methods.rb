@@ -32,7 +32,7 @@ module JsonSchematize
       end
 
       def cache_configuration
-        @cache_configuration ||= DEFAULTS
+        @cache_configuration ||= DEFAULTS.clone
       end
 
       def redis_client=(client)
