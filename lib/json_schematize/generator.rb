@@ -59,6 +59,12 @@ class JsonSchematize::Generator
     @optional_fields ||= []
   end
 
+  # def self.update_block(&block)
+  #   @skip_individual_updates = true
+  #   yield(cloned)
+  #   @skip_individual_updates = false
+  # end
+
   def self.convenience_methods(field:)
     unless self.instance_methods.include?(:"#{field.name}=")
       define_method(:"#{field.name}=") do |value|
