@@ -8,6 +8,7 @@ orbs:
 common_envs: &common_envs
   environment:
     APP_BUNDLER_VERSION: "2.3.8"
+    REDIS_URL: "redis://127.0.0.1"
 
 executors:
   gem:
