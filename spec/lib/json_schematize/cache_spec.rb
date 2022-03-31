@@ -203,7 +203,7 @@ RSpec.describe "Testing the Cache Layer Modules" do
       class CacheRedisClientDefault < JsonSchematize::Generator
         include JsonSchematize::Cache
 
-        cache_options redis_client: Redis.new(url: "#{ENV['REDIS_URL']}15")
+        cache_options redis_client: Redis.new(url: "#{ENV['REDIS_URL']}/15")
 
         add_field name: :id, type: String
       end
