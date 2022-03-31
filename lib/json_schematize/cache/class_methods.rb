@@ -57,9 +57,8 @@ module JsonSchematize
         clear_unscored_items! if rand >0.8
 
         cached_keys.map do |key|
-          stringed = redis_client.get(key)
-          string_key_hash = JSON.parse(stringed)
-          new(string_key_hash, skip_cache_update: true)
+          serialized_string = redis_client.get(key)
+          Marshal.load(serialized_string)
         end
       end
 

@@ -15,7 +15,7 @@ module JsonSchematize
         ttl = self.class.cache_configuration[:ttl].to_i
         score = Time.now.to_i + ttl
         client.zadd(__cache_namespace__, score, __cache_key__)
-        client.set(__cache_key__, self.to_h.to_json, ex: ttl)
+        client.set(__cache_key__, Marshal.dump(self), ex: ttl)
       end
 
       def __clear_entry__!
@@ -24,7 +24,7 @@ module JsonSchematize
       end
 
       def __cache_key__
-        "#{__cache_namespace__}:#{self.class.cache_configuration[:key].call(self)}"
+        "#{__cache_namespace__}:#{self.class.cache_configuration[:key].call(self, @__incoming_cache_key__)}"
       end
 
       def __cache_namespace__
