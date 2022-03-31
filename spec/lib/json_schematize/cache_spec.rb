@@ -39,6 +39,20 @@ RSpec.describe "Testing the Cache Layer Modules" do
     end
   end
 
+  describe "#clear_entry!" do
+    before { instance }
+
+    it 'clears cache' do
+      expect(klass.redis_client.keys).to include(instance.__cache_key__)
+      expect(klass.cached_keys).to include(instance.__cache_key__)
+
+      instance.__clear_entry__!
+
+      expect(klass.redis_client.keys).to_not include(instance.__cache_key__)
+      expect(klass.cached_keys).to_not include(instance.__cache_key__)
+    end
+  end
+
   describe ".cached_items" do
     before do
       times.times.each { |k| klass.new({'id'=>k}) }
@@ -116,5 +130,106 @@ RSpec.describe "Testing the Cache Layer Modules" do
 
     it { expect(klass.cache_configuration[:key]).to be_a(Proc) }
     it { expect(klass.cache_configuration[:key].call(instance)).to eq(id) }
+  end
+
+  context 'with custom ttl' do
+    let(:klass) do
+      class CacheTtlDefault < JsonSchematize::Generator
+        include JsonSchematize::Cache
+
+        cache_options ttl: 60
+
+        add_field name: :id, type: String
+      end
+      CacheTtlDefault
+    end
+    let(:params) { { id: id } }
+    let(:id) { "cool_beans_yo" }
+
+    it { expect(klass.cache_configuration[:ttl]).to eq(60) }
+  end
+
+  context 'with update_on_change set' do
+    let(:klass) do
+      class CacheTtlDefault < JsonSchematize::Generator
+        include JsonSchematize::Cache
+
+        cache_options update_on_change: true
+
+        add_field name: :id, type: String
+      end
+      CacheTtlDefault
+    end
+    let(:params) { { id: id } }
+    let(:id) { "cool_beans_yo" }
+
+    it { expect(klass.cache_configuration[:update_on_change]).to be(true) }
+
+    it 'updates redis on change' do
+      instance
+      expect(instance).to receive(:__update_cache_item__)
+
+      instance.id = "Some String"
+    end
+  end
+
+  context 'with update_on_change set' do
+    let(:klass) do
+      class CacheNamespaceDefault < JsonSchematize::Generator
+        include JsonSchematize::Cache
+
+        cache_options cache_namespace: "some_bogus_namespace"
+
+        add_field name: :id, type: String
+      end
+      CacheNamespaceDefault
+    end
+    let(:params) { { id: id } }
+    let(:id) { "cool_beans_yo" }
+
+    it { expect(klass.cache_configuration[:cache_namespace]).to eq("some_bogus_namespace") }
+    it { expect(klass.cache_namespace).to eq("some_bogus_namespace") }
+
+    context 'when setting equals' do
+      before { klass.cache_namespace = "some_random_name" }
+
+      it { expect(klass.cache_configuration[:cache_namespace]).to eq("some_random_name") }
+      it { expect(klass.cache_namespace).to eq("some_random_name") }
+    end
+  end
+
+  context 'with redis_client set' do
+    let(:klass) do
+      class CacheRedisClientDefault < JsonSchematize::Generator
+        include JsonSchematize::Cache
+
+        cache_options redis_client: Redis.new(url: "redis://redis/15")
+
+        add_field name: :id, type: String
+      end
+      CacheRedisClientDefault
+    end
+    let(:params) { { id: id } }
+    let(:id) { "cool_beans_yo" }
+
+    it { expect(klass.redis_client.inspect).to include("/15") }
+  end
+
+  context 'with redis_url set' do
+    let(:klass) do
+      class CacheRedisClientDefault < JsonSchematize::Generator
+        include JsonSchematize::Cache
+
+        cache_options redis_url: "redis://redis/15"
+
+        add_field name: :id, type: String
+      end
+      CacheRedisClientDefault
+    end
+    let(:params) { { id: id } }
+    let(:id) { "cool_beans_yo" }
+
+    it { expect(klass.redis_client.inspect).to include("/15") }
+    it { expect(klass.cache_configuration[:redis_url]).to eq("redis://redis/15") }
   end
 end

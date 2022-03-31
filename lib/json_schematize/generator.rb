@@ -71,6 +71,7 @@ class JsonSchematize::Generator
         return false unless validate_value(**validate_params)
 
         instance_variable_set(:"@#{field.name}", value)
+        __update_cache__!
         return true
       end
     end
@@ -99,6 +100,13 @@ class JsonSchematize::Generator
   end
 
   private
+
+  def __update_cache__!
+    return unless self.class.include?(JsonSchematize::Cache)
+    return unless self.class.cache_configuration[:update_on_change]
+
+    __update_cache_item__
+  end
 
   def assign_values!
     self.class.fields.each do |field|

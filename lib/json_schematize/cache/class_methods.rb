@@ -4,32 +4,31 @@ module JsonSchematize
       DEFAULT_ONE_MIN = 60 * 60
       DEFAULT_ONE_HOUR = DEFAULT_ONE_MIN * 60
       DEFAULT_ONE_DAY = DEFAULT_ONE_HOUR * 24
+      DEFAULT_URL = ENV["CACHE_LAYER_REDIS_URL"] || ENV["REDIS_URL"]
       DEFAULTS = {
-        redis_url: ENV["CACHE_LAYER_REDIS_URL"] || ENV["REDIS_URL"],
+        redis_url: DEFAULT_URL,
         ttl: DEFAULT_ONE_DAY,
         key: ->(val) { val.hash },
         update_on_change: true,
-        update_on_assignment: true,
-        update_on_assignment: true,
+        redis_client: ->() { ::Redis.new(url: DEFAULT_URL) },
       }
 
-      def cache_options(key: nil, redis_url: nil, redis_client: nil, cache_namespace: nil, ttl: nil, update_on_change: nil, update_on_assignment: nil)
+      def cache_options(key: nil, redis_url: nil, redis_client: nil, cache_namespace: nil, ttl: nil, update_on_change: nil)
         cache_configuration[:key] = key if key
         cache_configuration[:ttl] = ttl if ttl
         cache_configuration[:update_on_change] = update_on_change if update_on_change
-        cache_configuration[:update_on_assignment] = update_on_assignment if update_on_assignment
         cache_namespace = cache_configuration[:cache_namespace] = cache_namespace if cache_namespace
 
-        redis_client = cache_configuration[:redis_client] = redis_client if redis_client
-        redis_url = cache_configuration[:redis_url] = redis_url if redis_url
+        self.redis_client = cache_configuration[:redis_client] = redis_client if redis_client
+        self.redis_url = cache_configuration[:redis_url] = redis_url if redis_url
       end
 
       def cache_namespace
-        @cache_namespace ||= "jss:#{self.name.downcase}"
+         cache_configuration[:cache_namespace] ||= "jss:#{self.name.downcase}"
       end
 
       def cache_namespace=(namespace)
-        @cache_namespace ||= namespace
+        cache_configuration[:cache_namespace] = namespace
       end
 
       def cache_configuration
@@ -37,17 +36,16 @@ module JsonSchematize
       end
 
       def redis_client=(client)
-        @redis_client = client
+        cache_configuration[:redis_client] = client
       end
 
       def redis_url=(url)
-        redis_client = ::Redis.new(url: url)
+        cache_configuration[:redis_url] = url
+        cache_configuration[:redis_client] = ::Redis.new(url: url)
       end
 
       def redis_client
-        @redis_client ||= begin
-          ::Redis.new(url: DEFAULTS[:redis_url])
-        end
+        cache_configuration[:redis_client].is_a?(Proc) ? cache_configuration[:redis_client].call : cache_configuration[:redis_client]
       end
 
       def cached_keys
