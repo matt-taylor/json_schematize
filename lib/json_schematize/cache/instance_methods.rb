@@ -1,9 +1,10 @@
 module JsonSchematize
   module Cache
     module InstanceMethods
-      def initialize(stringified_params = nil, skip_cache_update: false, raise_on_error: true, **params)
+      def initialize(stringified_params = nil, cache_key: nil, skip_cache_update: false, raise_on_error: true, **params)
         super(stringified_params, raise_on_error: raise_on_error, **params)
 
+        @__incoming_cache_key__ = cache_key
         if @values_assigned
           __update_cache_item__(with_delete: false) unless skip_cache_update
         end

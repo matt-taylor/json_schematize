@@ -9,7 +9,7 @@ RSpec.describe "Testing the Cache Layer Modules" do
       include JsonSchematize::Cache
 
       schema_default option: :dig_type, value: :string
-      cache_options key: ->(val) { val.id }
+      cache_options key: ->(val, _custom_val) { val.id }
 
       add_field name: :id, type: String
     end
@@ -77,7 +77,7 @@ RSpec.describe "Testing the Cache Layer Modules" do
         include JsonSchematize::Cache
 
         schema_default option: :dig_type, value: :string
-        cache_options key: ->(val) { val.id }
+        cache_options key: ->(val, _custom_val) { val.id }
         cache_options ttl: 2
 
         add_field name: :id, type: String
@@ -119,7 +119,7 @@ RSpec.describe "Testing the Cache Layer Modules" do
       class CacheKeyDefault < JsonSchematize::Generator
         include JsonSchematize::Cache
 
-        cache_options key: ->(val) { val.id }
+        cache_options key: ->(val, _custom_val) { val.id }
 
         add_field name: :id, type: String
       end
@@ -129,7 +129,7 @@ RSpec.describe "Testing the Cache Layer Modules" do
     let(:id) { "cool_beans_yo" }
 
     it { expect(klass.cache_configuration[:key]).to be_a(Proc) }
-    it { expect(klass.cache_configuration[:key].call(instance)).to eq(id) }
+    it { expect(klass.cache_configuration[:key].call(instance, nil)).to eq(id) }
   end
 
   context 'with custom ttl' do

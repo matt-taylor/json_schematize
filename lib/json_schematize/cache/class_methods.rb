@@ -8,7 +8,7 @@ module JsonSchematize
       DEFAULTS = {
         redis_url: DEFAULT_URL,
         ttl: DEFAULT_ONE_DAY,
-        key: ->(val) { val.hash },
+        key: ->(val, _custom_key) { val.hash },
         update_on_change: true,
         redis_client: ->() { ::Redis.new(url: DEFAULT_URL) },
       }
