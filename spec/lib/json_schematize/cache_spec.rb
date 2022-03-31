@@ -203,7 +203,7 @@ RSpec.describe "Testing the Cache Layer Modules" do
       class CacheRedisClientDefault < JsonSchematize::Generator
         include JsonSchematize::Cache
 
-        cache_options redis_client: Redis.new(url: "redis://redis/15")
+        cache_options redis_client: Redis.new(url: "#{ENV['REDIS_URL']}15")
 
         add_field name: :id, type: String
       end
@@ -220,7 +220,7 @@ RSpec.describe "Testing the Cache Layer Modules" do
       class CacheRedisClientDefault < JsonSchematize::Generator
         include JsonSchematize::Cache
 
-        cache_options redis_url: "redis://redis/15"
+        cache_options redis_url: "#{ENV['REDIS_URL']}/15"
 
         add_field name: :id, type: String
       end
@@ -230,6 +230,6 @@ RSpec.describe "Testing the Cache Layer Modules" do
     let(:id) { "cool_beans_yo" }
 
     it { expect(klass.redis_client.inspect).to include("/15") }
-    it { expect(klass.cache_configuration[:redis_url]).to eq("redis://redis/15") }
+    it { expect(klass.cache_configuration[:redis_url]).to eq("#{ENV['REDIS_URL']}/15") }
   end
 end
