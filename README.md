@@ -110,6 +110,87 @@ class CustomClasses < JsonSchematize::Generator
 end
 ```
 
+### Caching Adapter
+
+JsonSchematize is built to be schema for API results. But what happens when you dont expect the result to change? Introducing the caching layer. This layer lets you cache a `JsonSchematize` object that can be queried from later
+
+**Note: This requires redis**
+
+```ruby
+class CachedClass < JsonSchematize::Generator
+  include JsonSchematize::Cache
+  cache_options key: ->(instance_of_cached_class, cache_key_from_initialization) { "#{instance_of_cached_class.id}:#{cache_key_from_initialization}" }
+  cache_options ttl: 7.days.to_i
+
+  schema_default option: :dig_type, value: :string
+
+  add_field name: :id, type: Integer
+end
+
+params = { id: 1 }
+CachedClass.new(cache_key: User.first.id, **params)
+###
+params = { "id" => 1 }
+CachedClass.new(params, cache_key: User.first.id)
+```
+
+#### Instance methods for Cache
+```ruby
+# optional cache_key added on initialization: Can be used to customize the cache entry for the instance
+item = CachedClass.new(cache_key: User.first.id, **params)
+
+# Update the cached item -- Note: This will overwrite the previous cached item IFF the `__cache_key__` remains the same. This is not gaurenteed
+# Optional Param: with_delete, Default true -- Will attempt to delete the original object
+item.__update_cache_item__
+
+# Manually delete the cached entry
+item.__clear_entry__!
+
+# Cache key for the item
+item.__cache_key__
+```
+
+#### Class methods for Cache
+```ruby
+# Retrieve all cached items for the class. Returns an array of CachedClass objects. Only objects that have not expired via TTL
+# Optional: key_includes: "string_expected_in_cache", default is nil and return everthing
+CachedClass.cached_items
+
+# Retrieves all valid object keys from the cache
+CachedClass.cached_keys
+
+# Clears all cached items for the given class
+CachedClass.clear_cache!
+
+# manually clear objects that have expired
+CachedClass.clear_unscored_items!
+```
+### Cache options
+```ruby
+# [Required] false; [Expect] Proc; [Return] String to be used as instance key; [Default] key will be the hash of the object
+cache_options key: ->(instance_of_class, custom_key) { }
+
+# [Required] false; [Expect] String; [Default] ENV["CACHE_LAYER_REDIS_URL"] || ENV["REDIS_URL"]
+cache_options redis_url: _redis_url_value
+
+# [Required] false; [Expect] Redis Object or Proc that returns value of Redis Client; [Default] Redis.new(url: redis_url)
+cache_options redis_client: redis_client
+
+# [Required] false; [Expect] Object that plays with to_s and has no spaces; [Default] Full class name downcased
+cache_options cache_namespace: cache_namespace
+
+# [Required] false; [Expect] Integer in seconds; [Default] 1 day
+cache_options ttl: (60 * 60)
+
+# [Required] false; [Expect] Boolean; [Default] true
+# Update the cache when a value has been changed manually
+cache_options update_on_change: true
+
+# [Required] false; [Expect] Float; [Default] 0.8
+# Expected value to be between 0 and 1. The sample rate that the class will clear oldcache values on retreival
+cache_options stochastic_cache_bust: 0.8
+```
+
 ## Development
 
 This gem can be developed against local machine or while using docker. Simpleified Docker commands can be found in the `Makefile` or execute `make help`

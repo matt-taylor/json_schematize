@@ -4,6 +4,7 @@ source "https://rubygems.org"
 
 gemspec
 
+gem 'redis'
 gem 'faker'
 gem 'pry'
 gem 'rspec', '~> 3.0'

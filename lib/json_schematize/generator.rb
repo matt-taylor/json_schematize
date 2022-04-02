@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "json_schematize/cache"
 require "json_schematize/field"
 require "json_schematize/introspect"
 
@@ -58,6 +59,12 @@ class JsonSchematize::Generator
     @optional_fields ||= []
   end
 
+  # def self.update_block(&block)
+  #   @skip_individual_updates = true
+  #   yield(cloned)
+  #   @skip_individual_updates = false
+  # end
+
   def self.convenience_methods(field:)
     unless self.instance_methods.include?(:"#{field.name}=")
       define_method(:"#{field.name}=") do |value|
@@ -70,6 +77,7 @@ class JsonSchematize::Generator
         return false unless validate_value(**validate_params)
 
         instance_variable_set(:"@#{field.name}", value)
+        __update_cache__!
         return true
       end
     end
@@ -98,6 +106,13 @@ class JsonSchematize::Generator
   end
 
   private
+
+  def __update_cache__!
+    return unless self.class.include?(JsonSchematize::Cache)
+    return unless self.class.cache_configuration[:update_on_change]
+
+    __update_cache_item__
+  end
 
   def assign_values!
     self.class.fields.each do |field|

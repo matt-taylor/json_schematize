@@ -8,6 +8,7 @@ orbs:
 common_envs: &common_envs
   environment:
     APP_BUNDLER_VERSION: "2.3.8"
+    REDIS_URL: "redis://127.0.0.1"
 
 executors:
   gem:
@@ -17,6 +18,8 @@ executors:
         type: string
     docker:
       - image: cimg/ruby:<< parameters.ruby-version >>
+      - image: circleci/redis:6.0
+
     <<: *common_envs
 
 commands:
@@ -146,6 +149,16 @@ jobs:
           command: |
             curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
             chmod +x ./cc-test-reporter
+      - run:
+          name: Waiting for Redis to be ready
+          command: |
+            for i in `seq 1 10`;
+            do
+              nc -z localhost 6379 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for Redis to be available && exit 1
       - run:
           name: Run and Report tests
           command: |

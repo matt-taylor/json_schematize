@@ -7,10 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.0] - YYYY-MM-DD
+## [0.6.0] - 2021-04-01
 
 ### Added
-- New feature 1
+- Caching Layer
 - New feature 2
 
 ### Changed
@@ -24,3 +24,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Bug fix 1
 - Bug fix 2
+
+[//]: # (Added, Changed, Removed, Fixed are the possible headers for each changlog version)

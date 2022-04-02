@@ -12,6 +12,7 @@ end
 require 'json_schematize'
 require 'faker'
 require 'pry'
+require 'redis'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|

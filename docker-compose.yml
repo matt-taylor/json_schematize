@@ -10,6 +10,13 @@ services:
       - .:/gem
       - ..:/local
       - bundle-cache:/usr/local/bundle:delegated
-
+    environment:
+      REDIS_URL: redis://redis
+    links:
+      - redis
+  redis:
+    image: redis
+    expose:
+      - 6379
 volumes:
   bundle-cache:
