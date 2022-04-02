@@ -11,11 +11,13 @@ module JsonSchematize
         key: ->(val, _custom_key) { val.hash },
         update_on_change: true,
         redis_client: ->() { ::Redis.new(url: DEFAULT_URL) },
+        stochastic_cache_bust: 0.8,
       }
 
-      def cache_options(key: nil, redis_url: nil, redis_client: nil, cache_namespace: nil, ttl: nil, update_on_change: nil)
+      def cache_options(key: nil, redis_url: nil, redis_client: nil, cache_namespace: nil, ttl: nil, update_on_change: nil, stochastic_cache_bust: nil)
         cache_configuration[:key] = key if key
         cache_configuration[:ttl] = ttl if ttl
+        cache_configuration[:stochastic_cache_bust] = stochastic_cache_bust if stochastic_cache_bust
         cache_configuration[:update_on_change] = update_on_change if update_on_change
         cache_namespace = cache_configuration[:cache_namespace] = cache_namespace if cache_namespace
 
@@ -54,7 +56,7 @@ module JsonSchematize
       end
 
       def cached_items(key_includes: nil)
-        clear_unscored_items! if rand >0.8
+        clear_unscored_items! if rand > cache_configuration[:stochastic_cache_bust]
 
         cached_keys.map do |key|
           if key_includes

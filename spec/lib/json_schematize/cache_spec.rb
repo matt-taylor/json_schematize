@@ -215,6 +215,21 @@ RSpec.describe "Testing the Cache Layer Modules" do
     it { expect(klass.redis_client.inspect).to include("/15") }
   end
 
+  context 'with stochastic_cache_bust set' do
+    let(:klass) do
+      class CacheRedisClientDefault < JsonSchematize::Generator
+        include JsonSchematize::Cache
+
+        cache_options stochastic_cache_bust: 0.123
+
+        add_field name: :id, type: String
+      end
+      CacheRedisClientDefault
+    end
+
+    it { expect(klass.cache_configuration[:stochastic_cache_bust]).to eq(0.123) }
+  end
+
   context 'with redis_url set' do
     let(:klass) do
       class CacheRedisClientDefault < JsonSchematize::Generator

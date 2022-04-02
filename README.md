@@ -185,6 +185,10 @@ cache_options ttl: (60 * 60)
 # [Required] false; [Expect] Boolean; [Default] true
 # Update the cache when a value has been changed manually
 cache_options update_on_change: true
+
+# [Required] false; [Expect] Float; [Default] 0.8
+# Expected value to be between 0 and 1. The sample rate that the class will clear oldcache values on retreival
+cache_options stochastic_cache_bust: 0.8
 ```
 
 ## Development
