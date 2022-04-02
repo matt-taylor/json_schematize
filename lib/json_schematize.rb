@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "json_schematize/version"
+
 require "json_schematize/base"
 require "json_schematize/boolean"
 require "json_schematize/generator"
