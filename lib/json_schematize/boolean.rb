@@ -2,18 +2,20 @@
 
 require "json_schematize/base"
 
-class JsonSchematize::Boolean < JsonSchematize::Base
-  FALSE_VALUES = ["false", "f", "0", false]
-  TRUE_VALUES = ["true", "t", "1", true]
+module JsonSchematize
+  class Boolean < JsonSchematize::Base
+    FALSE_VALUES = ["false", "f", "0", false]
+    TRUE_VALUES = ["true", "t", "1", true]
 
-  def self.new(val)
-    return false if FALSE_VALUES.include?(val)
-    return true if TRUE_VALUES.include?(val)
+    def self.new(val)
+      return false if FALSE_VALUES.include?(val)
+      return true if TRUE_VALUES.include?(val)
 
-    raise JsonSchematize::UndefinedBoolean, "#{val} is not a valid #{self.class}"
-  end
+      raise JsonSchematize::UndefinedBoolean, "#{val} is not a valid #{self.class}"
+    end
 
-  def self.acceptable_types
-    [TrueClass, FalseClass]
+    def self.acceptable_types
+      [TrueClass, FalseClass]
+    end
   end
 end
