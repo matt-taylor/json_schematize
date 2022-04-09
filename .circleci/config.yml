@@ -1,202 +1,29 @@
 version: 2.1
 
-# Declare the orbs that we'll use in our config.
-# read more about orbs: https://circleci.com/docs/2.0/using-orbs/
 orbs:
   ruby: circleci/ruby@1.0
+  node: circleci/node@2
+  cst: cst/framework@1
 
-common_envs: &common_envs
-  environment:
-    APP_BUNDLER_VERSION: "2.3.8"
-    REDIS_URL: "redis://127.0.0.1"
-
-executors:
-  gem:
-    parameters:
-      ruby-version:
-        default: "3.0.0"
-        type: string
-    docker:
-      - image: cimg/ruby:<< parameters.ruby-version >>
-      - image: circleci/redis:6.0
-
-    <<: *common_envs
-
-commands:
-  bundler-preamble:
-    description: "Install ruby and the Gemfile dependencies"
-    parameters:
-      ruby-version:
-        type: string
-        default: "3"
-        description: "Ruby Gem version"
-      key-name:
-        type: string
-        default: ""
-        description: Custom name to add to the cache key
-      cache-breaker:
-        type: string
-        default: "0"
-        description: "Cache breaker to force new cache instantiation"
-      keep-lock-file:
-        type: boolean
-        default: false
-        description: "Retain lock file when bit is set to true. Otherwise generate a new one specific for this build"
-    steps:
-      - checkout
-      - attach_workspace:
-          at: workspace
-      - unless:
-            condition:
-              equal: [ true, << parameters.keep-lock-file >> ]
-            steps:
-              - run:
-                  name: Remove Gemfile.lock
-                  command: rm Gemfile.lock
-      - restore_cache:
-          key: bundle-<< parameters.ruby-version >>-<< parameters.key-name >>-{{ checksum "Gemfile" }}-<< parameters.cache-breaker >>
-      - ruby/install-deps:
-          path: vendor/bundle
-          with-cache: false
-      - run:
-          name: "Update dependencies"
-          command: bundle update
-      - save_cache:
-          key: bundle-<< parameters.ruby-version >>-<< parameters.key-name >>-{{ checksum "Gemfile" }}-<< parameters.cache-breaker >>
-          paths:
-            - vendor/bundle
-
-jobs:
-  publish-rubygems:
-    executor: gem
-    steps:
-      - bundler-preamble:
-          keep-lock-file: true
-      - run:
-          name: Publish to Ruby Gems
-          command: |
-            if [ -z "$GEM_HOST_API_KEY" ]; then
-              echo 'Environment variable GEM_HOST_API_KEY is not present'
-              exit 1
-            fi
-            gem_output=$(gem build json_schematize.gemspec)
-            VERSION=$(printf "$gem_output" | awk '/Version: / {print $2}')
-            FILE=$(printf "$gem_output" | awk '/File: / {print $2}')
-
-            gem push ${FILE}
-
-  publish-github:
-    executor: gem
-    steps:
-      - bundler-preamble:
-          keep-lock-file: true
-      - run:
-          name: 'Get Go'
-          command: |
-            sudo apt-get update -qq
-            sudo apt-get -y --no-install-recommends install golang-go
-      - run:
-          name: 'Set Git stats'
-          command: |
-            git config user.name $GITHUB_USER
-            git config user.email $GITHUB_EMAIL
-      - run:
-          name: Publish Git Release
-          command: |
-            curl -sSL https://github.com/tcnksm/ghr/releases/download/v0.13.0/ghr_v0.13.0_linux_amd64.tar.gz | tar xz -f - -C . ghr_v0.13.0_linux_amd64/ghr
-            mv ghr_v0.13.0_linux_amd64/ghr .
-            rm -rf ghr_v0.13.0_linux_amd64
-            chmod 0755 ghr
-
-            if [ -z "$GITHUB_TOKEN" ]; then
-              echo 'Environment variable GITHUB_TOKEN is not present'
-              exit 1
-            fi
-
-            if [ -z "$GITHUB_USER" ]; then
-              echo 'Environment variable GITHUB_USER is not present'
-              exit 1
-            fi
-
-            if [ $(git tag -l "$VERSION") ]; then
-              echo "Pre existing version $VERSION, not tagging."
-              exit 0
-            fi
-
-            gem_output=$(gem build json_schematize.gemspec)
-            VERSION=$(printf "$gem_output" | awk '/Version: / {print $2}')
-            FILE=$GEM_PATH$(printf "$gem_output" | awk '/File: / {print $2}')
-
-            git tag -a $VERSION -m "$VERSION"
-
-            SHA=$(git rev-parse HEAD)
-            ./ghr -soft -t ${GITHUB_TOKEN} -u ${GITHUB_USER} -r json_schematize -c ${SHA} ${VERSION} ${FILE}
-
-  test:
-    parameters:
-      ruby-version:
-        default: "3.0.0"
-        type: string
-        description: "Ruby version to test against"
-    executor:
-      name: gem
-      ruby-version: << parameters.ruby-version >>
-    steps:
-      - bundler-preamble:
-          ruby-version: "<< parameters.ruby-version >>"
-      - run:
-          name: Setup Climate Control test-reporter
-          command: |
-            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-            chmod +x ./cc-test-reporter
-      - run:
-          name: Waiting for Redis to be ready
-          command: |
-            for i in `seq 1 10`;
-            do
-              nc -z localhost 6379 && echo Success && exit 0
-              echo -n .
-              sleep 1
-            done
-            echo Failed waiting for Redis to be available && exit 1
-      - run:
-          name: Run and Report tests
-          command: |
-            ./cc-test-reporter before-build
-            SIMPLE_COV_RUN=true bundle exec rspec --format RspecJunitFormatter --out test-results/rspec/rspec.xml --format progress --color
-      - when:
-          condition:
-            equal:
-              [
-                required-test-ruby2.7.5,
-                required-test-ruby<< parameters.ruby-version >>,
-              ]
-          steps:
-            - run:
-                name: Report CodeClimate Coverage
-                command: ./cc-test-reporter after-build --coverage-input-type simplecov
 workflows:
   version: 2
   yeet-le-jobs:
     jobs:
-      - test:
+      - cst/enforce-gem-version-bump
+      - cst/rspec-ruby:
+          rspec-system-args: "SIMPLE_COV_RUN=true"
+          cc-report-collect-ruby: "2.7.5"
           matrix:
             parameters:
               ruby-version: ["2.7.5" , "3.0.0", "3.0.3"]
             alias: required-matrix-tests
-          name: required-test-ruby<< matrix.ruby-version >>
-      - publish-github:
+          name: test-ruby<< matrix.ruby-version >>
+      - cst/publish-gem:
+          publish-git: true
+          publish-default-gem: true
           requires:
             - required-matrix-tests
           filters:
             branches:
               only:
                 - main
-      - publish-rubygems:
-          requires:
-            - required-matrix-tests
-          filters:
-            branches:
-              only:
-                - main
-

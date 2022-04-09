@@ -65,7 +65,7 @@ module JsonSchematize
 
           serialized_string = redis_client.get(key)
           Marshal.load(serialized_string)
-        end
+        end.compact
       end
 
       def clear_cache!
