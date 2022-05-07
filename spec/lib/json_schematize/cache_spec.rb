@@ -43,12 +43,12 @@ RSpec.describe "Testing the Cache Layer Modules" do
     before { instance }
 
     it 'clears cache' do
-      expect(klass.redis_client.keys).to include(instance.__cache_key__)
+      expect(klass.cache_client.instance_variable_get(:@data).keys).to include(instance.__cache_key__)
       expect(klass.cached_keys).to include(instance.__cache_key__)
 
       instance.__clear_entry__!
 
-      expect(klass.redis_client.keys).to_not include(instance.__cache_key__)
+      expect(klass.cache_client.instance_variable_get(:@data).keys).to_not include(instance.__cache_key__)
       expect(klass.cached_keys).to_not include(instance.__cache_key__)
     end
   end
@@ -64,7 +64,7 @@ RSpec.describe "Testing the Cache Layer Modules" do
       expect(klass.cached_items).to all(be_a(klass))
     end
 
-    it 'does not update redis cache on retrieval' do
+    it 'does not update cache on retrieval' do
       klass.cached_items
 
       expect_any_instance_of(klass).to_not receive(:__update_cache_item__)
@@ -96,9 +96,10 @@ RSpec.describe "Testing the Cache Layer Modules" do
 
     it 'cached_items returns no items' do
       keys
-      expect(klass.redis_client.keys).to include(*keys)
-      sleep(2) # redis keeps it's own time. No way to simulate this
-      expect(klass.redis_client.keys).to_not include(*keys)
+      expect(klass.cache_client.instance_variable_get(:@data).keys).to include(*keys)
+      sleep(2)
+      klass.cache_client.cleanup # Explicitly clean up expired items, code does this automagically
+      expect(klass.cache_client.instance_variable_get(:@data).keys).to_not include(*keys)
     end
 
     it 'clears unscored items from primary' do
@@ -107,7 +108,7 @@ RSpec.describe "Testing the Cache Layer Modules" do
       expect(klass.clear_unscored_items!).to eq(times)
     end
 
-    it 'does not update redis cache on retrieval' do
+    it 'does not update cache on retrieval' do
       klass.cached_items
 
       expect_any_instance_of(klass).to_not receive(:__update_cache_item__)
@@ -165,7 +166,7 @@ RSpec.describe "Testing the Cache Layer Modules" do
 
     it { expect(klass.cache_configuration[:update_on_change]).to be(true) }
 
-    it 'updates redis on change' do
+    it 'updates cache on change' do
       instance
       expect(instance).to receive(:__update_cache_item__)
 
@@ -198,12 +199,12 @@ RSpec.describe "Testing the Cache Layer Modules" do
     end
   end
 
-  context 'with redis_client set' do
+  context 'with cache_client set' do
     let(:klass) do
       class CacheRedisClientDefault < JsonSchematize::Generator
         include JsonSchematize::Cache
 
-        cache_options redis_client: Redis.new(url: "#{ENV['REDIS_URL']}/15")
+        cache_options cache_client: ::ActiveSupport::Cache::MemoryStore.new(size: 2048, compress: true)
 
         add_field name: :id, type: String
       end
@@ -212,7 +213,7 @@ RSpec.describe "Testing the Cache Layer Modules" do
     let(:params) { { id: id } }
     let(:id) { "cool_beans_yo" }
 
-    it { expect(klass.redis_client.inspect).to include("/15") }
+    it { expect(klass.cache_client.instance_variable_get(:@options)).to eq({size: 2048, compress: true, compress_threshold: 1024}) }
   end
 
   context 'with stochastic_cache_bust set' do
@@ -228,23 +229,5 @@ RSpec.describe "Testing the Cache Layer Modules" do
     end
 
     it { expect(klass.cache_configuration[:stochastic_cache_bust]).to eq(0.123) }
-  end
-
-  context 'with redis_url set' do
-    let(:klass) do
-      class CacheRedisClientDefault < JsonSchematize::Generator
-        include JsonSchematize::Cache
-
-        cache_options redis_url: "#{ENV['REDIS_URL']}/15"
-
-        add_field name: :id, type: String
-      end
-      CacheRedisClientDefault
-    end
-    let(:params) { { id: id } }
-    let(:id) { "cool_beans_yo" }
-
-    it { expect(klass.redis_client.inspect).to include("/15") }
-    it { expect(klass.cache_configuration[:redis_url]).to eq("#{ENV['REDIS_URL']}/15") }
   end
 end
