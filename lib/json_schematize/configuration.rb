@@ -13,7 +13,9 @@ module JsonSchematize
       cache_ttl: DEFAULT_ONE_DAY,
       cache_update_on_change: true,
     }
+
     attr_accessor *DEFAULT_CACHE_OPTIONS.keys
+
     def initialize
       @cache_client = DEFAULT_CACHE_OPTIONS[:cache_client]
       @cache_key = DEFAULT_CACHE_OPTIONS[:cache_key]
@@ -42,17 +44,27 @@ module JsonSchematize
     end
 
     def cache_client=(client)
-      @cache_client
+      min_required = [:read, :write, :delete_multi, :read_multi]
+      min_required.each do |meth|
+        next if client.methods.include?(meth)
+
+        assign = _assign_msg_("cache_client", "_initialized_client_", "Preferably an ActiveSupport::Cache::Store supported client")
+        msg = "Passed in client does not accept minimum values. #{min_required} are required methods \n#{assign}"
+        raise JsonSchematize::ConfigError, msg
+      end
+
+
+      @cache_client = client
     end
 
     def cache_client
       return @cache_client unless @cache_client.nil?
 
       begin
-        require 'active_support'
+        Kernel.require 'active_support'
       rescue LoadError
         assign = _assign_msg_("cache_client", "ActiveSupport::Cache::MemoryStore.new", "A ActiveSupport::Cache::Store supported client")
-        msg = "Default client missing. Attempted to use 'active_support/cache' but not loaded. \n #{assign}"
+        msg = "Default client missing. Attempted to use 'active_support/cache' but not loaded. \n#{assign}"
         raise JsonSchematize::ConfigError, msg
       end
 
