@@ -26,6 +26,21 @@ RSpec.describe "Testing the Cache Layer Modules" do
       instance
       expect(subject).to include(instance.__cache_key__)
     end
+
+    context "when it deserialization fails" do
+      before do
+        instance
+        allow(Marshal).to receive(:load).and_raise(StandardError)
+      end
+
+      it { is_expected.to eq([]) }
+
+      it do
+        expect(::Kernel).to receive(:warn).with(/Yikes!!/).and_call_original
+
+        subject
+      end
+    end
   end
 
   describe ".clear_cache!" do

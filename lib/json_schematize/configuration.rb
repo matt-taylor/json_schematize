@@ -75,14 +75,7 @@ module JsonSchematize
     private
 
     def _assign_msg_(key, assignment, comment)
-      config =
-        if assignment.is_a?(Array)
-          assignment.map do |assign|
-            "  config.#{key} = #{assign} # #{comment}"
-          end.join("\n")
-        else
-          "  config.#{key} = #{assignment} # #{comment}"
-        end
+      config = "  config.#{key} = #{assignment} # #{comment}"
       "\n\n# Initializer for json_schematize\n" \
       "JsonSchematize.configure do |config|\n" \
       "#{config}\n" \
