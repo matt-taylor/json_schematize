@@ -1,7 +1,12 @@
 # frozen_string_literal: true
 
+require "class_composer"
+require "json_schematize/errors"
+
 module JsonSchematize
   class Configuration
+    include ClassComposer::Generator
+
     DEFAULT_ONE_MIN = 60 * 60
     DEFAULT_ONE_HOUR = DEFAULT_ONE_MIN * 60
     DEFAULT_ONE_DAY = DEFAULT_ONE_HOUR * 24
@@ -14,16 +19,11 @@ module JsonSchematize
       cache_update_on_change: true,
     }
 
-    attr_accessor *DEFAULT_CACHE_OPTIONS.keys
-
-    def initialize
-      @cache_client = DEFAULT_CACHE_OPTIONS[:cache_client]
-      @cache_key = DEFAULT_CACHE_OPTIONS[:cache_key]
-      @cache_namespace = DEFAULT_CACHE_OPTIONS[:cache_namespace]
-      @cache_stochastic_bust = DEFAULT_CACHE_OPTIONS[:cache_stochastic_bust]
-      @cache_ttl = DEFAULT_CACHE_OPTIONS[:cache_ttl]
-      @cache_update_on_change = DEFAULT_CACHE_OPTIONS[:cache_update_on_change]
-    end
+    add_composer :cache_key, allowed: Proc, default: DEFAULT_CACHE_OPTIONS[:cache_key], validation_error_klass: ::JsonSchematize::ConfigError, invalid_message: -> (val) { _assign_msg_("cache_key", "->(val, cusom_key) { val.hash }", "Default proc to assign cache key") }
+    add_composer :cache_namespace, allowed: [String, Symbol]
+    add_composer :cache_stochastic_bust, allowed: [Float, Integer], default: DEFAULT_CACHE_OPTIONS[:cache_stochastic_bust]
+    add_composer :cache_ttl, allowed: [Float, Integer], default: DEFAULT_CACHE_OPTIONS[:cache_ttl]
+    add_composer :cache_update_on_change, allowed: [TrueClass, FalseClass], default: DEFAULT_CACHE_OPTIONS[:cache_update_on_change]
 
     def cache_hash
       DEFAULT_CACHE_OPTIONS.map do |key, value|
