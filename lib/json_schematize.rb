@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 require "json_schematize/base"
 require "json_schematize/boolean"
 require "json_schematize/configuration"
@@ -10,9 +9,6 @@ require "json_schematize/generator"
 require "json_schematize/version"
 
 module JsonSchematize
-  ## Customized class errors
-  class UndefinedBoolean < Error; end
-
   def self.configure
     yield configuration if block_given?
   end
