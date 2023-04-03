@@ -10,7 +10,9 @@ class JsonSchematize::Generator
 
   include JsonSchematize::Introspect
 
-  def self.add_field(name:, type: nil, types: nil, dig_type: nil, dig: nil, validator: nil, required: nil, converter: nil, array_of_types: nil, empty_value: nil)
+  def self.add_field(name:, type: nil, types: nil, dig_type: nil, dig: nil, validator: nil, required: nil, converter: nil, array_of_types: nil, empty_value: nil, hash_of_types: nil, hash_of_types_key: "name")
+    require "json_schematize/empty_value"
+
     field_params = {
       converter: converter || schema_defaults[:converter],
       dig: dig || schema_defaults[:dig],
