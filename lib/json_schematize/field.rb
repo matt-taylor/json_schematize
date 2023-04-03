@@ -39,7 +39,11 @@ class JsonSchematize::Field
 
   def acceptable_value?(transformed_value:, raise_on_error:)
     if array_of_types
-      boolean = transformed_value.all? { |val| validate_acceptable_types(val: val) }
+      if transformed_value.is_a?(empty_value) && required == false
+        boolean = true
+      else
+        boolean = transformed_value.all? { |val| validate_acceptable_types(val: val) }
+      end
     else
       boolean = validate_acceptable_types(val: transformed_value)
     end
@@ -53,7 +57,11 @@ class JsonSchematize::Field
 
   def acceptable_value_by_validator?(transformed_value:, raw_value:, raise_on_error:)
     if array_of_types
-      boolean = transformed_value.all? { |val| validator.call(transformed_value, raw_value) }
+      if transformed_value.is_a?(empty_value) && required == false
+        boolean = true
+      else
+        boolean = transformed_value.all? { |val| validator.call(transformed_value, raw_value) }
+      end
     else
       boolean = validator.call(transformed_value, raw_value)
     end
@@ -94,6 +102,7 @@ class JsonSchematize::Field
 
   def iterate_array_of_types(value:)
     return raw_converter_call(value: value) unless array_of_types
+    return empty_value.new if value.nil? && required == false
 
     unless value.is_a?(Array)
       raise JsonSchematize::InvalidFieldByArrayOfTypes, ":#{name} expected to be an array based on :array_of_types flag. Given #{value.class}"
