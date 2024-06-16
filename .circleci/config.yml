@@ -11,6 +11,12 @@ workflows:
     jobs:
       - cst/enforce-gem-version-bump
       - cst/rspec-ruby:
+          environment:
+            SLACK_CLIENT_ID: ""
+            SLACK_CLIENT_SECRET: ""
+            SLACK_SIGNING_SECRET: ""
+            SLACK_SOCKET_TOKEN: ""
+            SLACK_VERIFICATION_TOKEN: ""
           rspec-system-args: "SIMPLE_COV_RUN=true"
           cc-report-collect-ruby: "2.7.5"
           matrix:
