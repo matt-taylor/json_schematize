@@ -7,7 +7,9 @@ module JsonSchematize::Introspect
         value = method(:"#{field.name}").()
         if field.array_of_types
           [field.name, value.map(&:to_h)]
-        elsif JsonSchematize::Generator === value
+        elsif value.class == Class
+          [field.name, value.to_s]
+        elsif JsonSchematize::Generator > value.class
           [field.name, value.to_h]
         else
           [field.name, value]

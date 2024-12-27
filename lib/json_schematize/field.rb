@@ -89,7 +89,11 @@ class JsonSchematize::Field
   private
 
   def validate_acceptable_types(val:)
-    (all_allowed_types + @acceptable_types).include?(val.class)
+    types = (all_allowed_types + @acceptable_types)
+    return true if types.include?(val.class)
+
+    # Allow inheritance here as well -- this only works when a custom converter is defined
+    Class === val ? types.any? { _1 > val } : false
   end
 
   def all_allowed_types
