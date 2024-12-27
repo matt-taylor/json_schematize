@@ -15,7 +15,7 @@ workflows:
           cc-report-collect-ruby: "3.3.6"
           matrix:
             parameters:
-              ruby-version: ["3.1.5" , "3.2.4", "3.3.6"]
+              ruby-version: ["3.2.4", "3.3.6"]
             alias: required-matrix-tests
           name: test-ruby<< matrix.ruby-version >>
       - cst/publish-gem:
