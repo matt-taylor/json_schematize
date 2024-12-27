@@ -27,10 +27,11 @@ RSpec.describe "Testing the Cache Layer Modules" do
       expect(subject).to include(instance.__cache_key__)
     end
 
-    context "when it deserialization fails" do
+    context "when deserialization fails" do
       before do
         instance
-        allow(Marshal).to receive(:load).and_raise(StandardError)
+
+        allow(klass).to receive(:__marshalize__).and_raise(StandardError)
       end
 
       it { is_expected.to eq([]) }
