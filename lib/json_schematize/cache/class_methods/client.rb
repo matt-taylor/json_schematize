@@ -2,12 +2,11 @@
 
 module JsonSchematize::Cache::ClassMethods
   module Client
-
     def __deserialize_keys__(key_hash_bytes)
       return [{}, 0] if key_hash_bytes.nil?
 
       min_expire = Time.now.to_i
-      key_hash =  Marshal.load(key_hash_bytes)
+      key_hash =  __marshalize__(key_hash_bytes)
       keys_removed = 0
       key_hash.each do |key, expire|
         next if expire.to_i > min_expire
@@ -20,6 +19,10 @@ module JsonSchematize::Cache::ClassMethods
     rescue StandardError => e
       ::Kernel.warn("Yikes!! Failed to parse. Returning empty. #{e.message}")
       [{}, 0]
+    end
+
+    def __marshalize__(key_hash_bytes)
+      Marshal.load(key_hash_bytes)
     end
 
     def __update_record_keeper__!(expire:, cache_key:, delete_key: false)

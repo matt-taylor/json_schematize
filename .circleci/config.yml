@@ -12,10 +12,10 @@ workflows:
       - cst/enforce-gem-version-bump
       - cst/rspec-ruby:
           rspec-system-args: "SIMPLE_COV_RUN=true"
-          cc-report-collect-ruby: "2.7.5"
+          cc-report-collect-ruby: "3.3.6"
           matrix:
             parameters:
-              ruby-version: ["2.7.5" , "3.0.0", "3.0.3"]
+              ruby-version: ["3.2.4", "3.3.6"]
             alias: required-matrix-tests
           name: test-ruby<< matrix.ruby-version >>
       - cst/publish-gem:
