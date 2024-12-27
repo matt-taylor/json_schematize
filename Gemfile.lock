@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     json_schematize (0.9.0)
-      class_composer (~> 1.0)
+      class_composer (>= 1.0)
 
 GEM
   remote: https://rubygems.org/
