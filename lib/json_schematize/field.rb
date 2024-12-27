@@ -5,7 +5,7 @@ require 'json_schematize/field_validators'
 
 class JsonSchematize::Field
 
-  attr_reader :name, :types, :dig, :dig_type, :symbol, :validator, :empty_value
+  attr_reader :name, :types, :type, :dig, :dig_type, :symbol, :validator, :empty_value
   attr_reader :acceptable_types, :required, :converter, :array_of_types
 
   EXPECTED_DIG_TYPE = [DIG_SYMBOL = :symbol, DEFAULT_DIG = DIG_NONE =:none, DIG_STRING = :string]

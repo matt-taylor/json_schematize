@@ -2,13 +2,15 @@
 
 require "json_schematize/cache"
 require "json_schematize/field"
-require "json_schematize/introspect"
+require "json_schematize/introspect_instance_methods"
+require "json_schematize/introspect_class_methods"
 
 class JsonSchematize::Generator
   EMPTY_VALIDATOR = ->(_transformed_value, _raw_value) { true }
   PROTECTED_METHODS = [:assign_values!, :convenience_methods, :validate_required!, :validate_optional!, :validate_value]
 
-  include JsonSchematize::Introspect
+  include JsonSchematize::Introspect::InstanceMethods
+  extend JsonSchematize::Introspect::ClassMethods
 
   def self.add_field(name:, type: nil, types: nil, dig_type: nil, dig: nil, validator: nil, required: nil, converter: nil, array_of_types: nil, empty_value: nil, hash_of_types: nil, hash_of_types_key: "name")
     require "json_schematize/empty_value"

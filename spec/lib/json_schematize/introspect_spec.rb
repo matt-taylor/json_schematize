@@ -25,6 +25,94 @@ RSpec.describe "Introspection" do
     }
   end
 
+  describe ".introspect" do
+    subject(:introspect) { klass.introspect(deep:) }
+
+    let(:deep) { false }
+    it do
+      is_expected.to include(
+        "id" => { required: true, allowed: Integer },
+        "count" => { required: true, allowed: Integer },
+        "style" => { required: true, allowed: Symbol },
+        "something" => { required: true, allowed: String },
+        "danger" => { required: true, allowed: Symbol },
+        "zone" => { required: true, allowed: Symbol },
+      )
+    end
+
+    context "with deep nested generator" do
+      before do
+        secondary_class.add_field name: :id, type: Integer
+        klass.add_field name: :nested, type: secondary_class
+      end
+
+      it do
+        is_expected.to include(
+          "id" => { required: true, allowed: Integer },
+          "count" => { required: true, allowed: Integer },
+          "style" => { required: true, allowed: Symbol },
+          "something" => { required: true, allowed: String },
+          "danger" => { required: true, allowed: Symbol },
+          "zone" => { required: true, allowed: Symbol },
+          "nested" => { required: true, allowed: secondary_class },
+        )
+      end
+
+      context "when deep set to true" do
+        let(:deep) { true }
+
+        it do
+          is_expected.to include(
+            "id" => { required: true, allowed: Integer },
+            "count" => { required: true, allowed: Integer },
+            "style" => { required: true, allowed: Symbol },
+            "something" => { required: true, allowed: String },
+            "danger" => { required: true, allowed: Symbol },
+            "zone" => { required: true, allowed: Symbol },
+            "nested" => { required: true, allowed: secondary_class },
+            "nested.id" => { required: true, allowed: Integer },
+          )
+        end
+      end
+    end
+
+    context "with array deep nested generator" do
+      before do
+        secondary_class.add_field name: :id, type: Integer
+        klass.add_field name: :nested, array_of_types: true, type: secondary_class
+      end
+
+      it do
+        is_expected.to include(
+          "id" => { required: true, allowed: Integer },
+          "count" => { required: true, allowed: Integer },
+          "style" => { required: true, allowed: Symbol },
+          "something" => { required: true, allowed: String },
+          "danger" => { required: true, allowed: Symbol },
+          "zone" => { required: true, allowed: Symbol },
+          "nested" => { required: true, allowed: "Array of #{secondary_class}" },
+        )
+      end
+
+      context "when deep set to true" do
+        let(:deep) { true }
+
+        it do
+          is_expected.to include(
+            "id" => { required: true, allowed: Integer },
+            "count" => { required: true, allowed: Integer },
+            "style" => { required: true, allowed: Symbol },
+            "something" => { required: true, allowed: String },
+            "danger" => { required: true, allowed: Symbol },
+            "zone" => { required: true, allowed: Symbol },
+            "nested" => { required: true, allowed: "Array of #{secondary_class}" },
+            "nested[x].id" => { required: true, allowed: Integer },
+          )
+        end
+      end
+    end
+  end
+
   describe "#to_h" do
     subject(:to_h) { instance.to_h }
 
