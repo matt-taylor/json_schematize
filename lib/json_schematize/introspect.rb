@@ -1,9 +1,23 @@
 # frozen_string_literal: true
 
 module JsonSchematize::Introspect
+
+  def hashify
+    self.class.fields.map do |field|
+      value = method(:"#{field.name}").()
+    end
+  end
+
   def to_h
     self.class.fields.map do |field|
-      [field.name, instance_variable_get(:"@#{field.name}")]
+      value = method(:"#{field.name}").()
+      if field.array_of_types
+        [field.name, value.map(&:to_h)]
+      elsif JsonSchematize::Generator === value
+        [field.name, value.to_h]
+      else
+        [field.name, value]
+      end
     end.to_h
   end
   alias :to_hash :to_h
