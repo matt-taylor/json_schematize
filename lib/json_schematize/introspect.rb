@@ -1,13 +1,6 @@
 # frozen_string_literal: true
 
 module JsonSchematize::Introspect
-
-  def hashify
-    self.class.fields.map do |field|
-      value = method(:"#{field.name}").()
-    end
-  end
-
   def to_h
     self.class.fields.map do |field|
       value = method(:"#{field.name}").()
