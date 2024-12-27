@@ -108,8 +108,14 @@ class JsonSchematize::Field
       raise JsonSchematize::InvalidFieldByArrayOfTypes, ":#{name} expected to be an array based on :array_of_types flag. Given #{value.class}"
     end
 
-    value.map do |val|
-      raw_converter_call(value: val)
+    if value.all? { JsonSchematize::Generator === _1 }
+      # We have already done the work to convert it into a Schematizable object
+      # Return the array and allow the remaining validations to take place
+      value
+    else
+      value.map do |val|
+        raw_converter_call(value: val)
+      end
     end
   end
 
