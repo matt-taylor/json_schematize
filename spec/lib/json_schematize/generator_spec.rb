@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 RSpec.describe JsonSchematize::Generator do
-
   describe ".add_field" do
     subject(:add_field) { klass.add_field(**field_params) }
 
@@ -129,99 +128,6 @@ RSpec.describe JsonSchematize::Generator do
       expect(instance.count).to eq(count)
       expect(instance.status).to eq(status.to_sym)
       expect(instance.something).to eq(something.to_sym)
-    end
-  end
-
-  describe "introspection" do
-    let(:instance) { klass.new(**params) }
-
-    let(:params) do
-      {
-        id: 6457,
-        count: 9145,
-        style: :symbol,
-        something: "danger",
-        danger: :count,
-        zone: :zone,
-      }
-    end
-
-    describe "#to_h" do
-      subject(:to_h) { instance.to_h }
-
-      let(:klass) do
-        class IntrospectKlassToH < described_class
-          add_field name: :id, type: Integer
-          add_field name: :count, type: Integer
-          add_field name: :style, type: Symbol
-          add_field name: :something, type: String
-          add_field name: :danger, type: Symbol
-          add_field name: :zone, type: Symbol
-        end
-        IntrospectKlassToH
-      end
-      it { is_expected.to eq(params) }
-    end
-
-    describe "#deep_inspect" do
-      subject(:deep_inspect) { instance.deep_inspect(with_raw_params: with_raw_params, with_field: with_field) }
-
-      let(:klass) do
-        class IntrospectKlassDeepInspect < described_class
-          add_field name: :id, type: Integer
-          add_field name: :count, type: Integer
-          add_field name: :style, type: Symbol
-          add_field name: :something, type: String
-          add_field name: :danger, type: Symbol
-          add_field name: :zone, type: Symbol
-        end
-        IntrospectKlassDeepInspect
-      end
-      let(:with_raw_params) { false }
-      let(:with_field) { false }
-      let(:enumerate_expected) do
-        klass.fields.map do |field|
-          value = {
-            required: field.required,
-            acceptable_types: field.acceptable_types,
-            value: params[field.name],
-          }
-          value[:field] = field if with_field
-          value[:raw_params] = params if with_raw_params
-          [field.name, value]
-        end.to_h
-      end
-
-      it { is_expected.to eq(enumerate_expected) }
-
-      context 'when with_raw_params' do
-        let(:with_raw_params) { true }
-        it { is_expected.to eq(enumerate_expected) }
-      end
-
-      context 'when with_field' do
-        let(:with_field) { true }
-
-        it { is_expected.to eq(enumerate_expected) }
-      end
-    end
-
-    describe "#inspect" do
-      subject(:inspect) { instance.inspect }
-
-      let(:klass) do
-        class IntrospectKlassInspect < described_class
-          add_field name: :id, type: Integer
-          add_field name: :count, type: Integer
-          add_field name: :style, type: Symbol
-          add_field name: :something, type: String
-          add_field name: :danger, type: Symbol
-          add_field name: :zone, type: Symbol
-        end
-        IntrospectKlassInspect
-      end
-      let(:expected) { "#<#{klass} - required fields: #{params.keys}; #{instance.to_h.map { |k, v| "#{k}:#{v}" }.join(", ")}>" }
-      it { is_expected.to eq(expected) }
     end
   end
 

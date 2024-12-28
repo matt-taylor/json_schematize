@@ -5,7 +5,7 @@ require 'json_schematize/field_validators'
 
 class JsonSchematize::Field
 
-  attr_reader :name, :types, :dig, :dig_type, :symbol, :validator, :empty_value
+  attr_reader :name, :types, :type, :dig, :dig_type, :symbol, :validator, :empty_value
   attr_reader :acceptable_types, :required, :converter, :array_of_types
 
   EXPECTED_DIG_TYPE = [DIG_SYMBOL = :symbol, DEFAULT_DIG = DIG_NONE =:none, DIG_STRING = :string]
@@ -89,7 +89,11 @@ class JsonSchematize::Field
   private
 
   def validate_acceptable_types(val:)
-    (all_allowed_types + @acceptable_types).include?(val.class)
+    types = (all_allowed_types + @acceptable_types)
+    return true if types.include?(val.class)
+
+    # Allow inheritance here as well -- this only works when a custom converter is defined
+    Class === val ? types.any? { _1 > val } : false
   end
 
   def all_allowed_types
@@ -108,8 +112,14 @@ class JsonSchematize::Field
       raise JsonSchematize::InvalidFieldByArrayOfTypes, ":#{name} expected to be an array based on :array_of_types flag. Given #{value.class}"
     end
 
-    value.map do |val|
-      raw_converter_call(value: val)
+    if value.all? { JsonSchematize::Generator === _1 }
+      # We have already done the work to convert it into a Schematizable object
+      # Return the array and allow the remaining validations to take place
+      value
+    else
+      value.map do |val|
+        raw_converter_call(value: val)
+      end
     end
   end
 
