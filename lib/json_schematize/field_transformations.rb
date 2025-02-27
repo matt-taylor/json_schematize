@@ -20,7 +20,13 @@ module JsonSchematize::FieldTransformations
 
     @converter = DEFAULT_CONVERTERS[@acceptable_types[0]]
     if @converter.nil?
-      @converter = ->(val) { @acceptable_types[0].new(val) }
+      @converter = Proc.new do |val|
+        if @acceptable_types[0] < JsonSchematize::Generator && @acceptable_types[0] === val
+          val
+        else
+          @acceptable_types[0].new(val)
+        end
+      end
     end
   end
 
