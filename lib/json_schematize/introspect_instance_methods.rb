@@ -9,6 +9,8 @@ module JsonSchematize::Introspect
           [field.name, value.map(&:to_h)]
         elsif value.class == Class
           [field.name, value.to_s]
+        elsif value.class == JsonSchematize::EmptyValue
+          [field.name, nil]
         elsif JsonSchematize::Generator > value.class
           [field.name, value.to_h]
         else
