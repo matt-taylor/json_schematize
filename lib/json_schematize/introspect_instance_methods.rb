@@ -5,12 +5,12 @@ module JsonSchematize::Introspect
     def to_h
       self.class.fields.map do |field|
         value = method(:"#{field.name}").()
-        if field.array_of_types
+        if value.class == JsonSchematize::EmptyValue
+          [field.name, nil]
+        elsif field.array_of_types
           [field.name, value.map(&:to_h)]
         elsif value.class == Class
           [field.name, value.to_s]
-        elsif value.class == JsonSchematize::EmptyValue
-          [field.name, nil]
         elsif JsonSchematize::Generator > value.class
           [field.name, value.to_h]
         else
